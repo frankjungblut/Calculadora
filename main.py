@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 
 def on_click(char):
     current_text = display.get()
@@ -21,7 +22,6 @@ def on_key_press(event):
     char = event.char
     if char.isdigit() or char in ['+', '-', '*', '/']:
         current_text = display.get()
-        # Verifica se o último caractere já é o que está sendo inserido para evitar duplicação
         if not current_text.endswith(char):
             on_click(char)
     elif event.keysym == 'Return':
@@ -33,8 +33,13 @@ janela = tk.Tk()
 janela.title("Calculadora")
 janela.bind('<Key>', on_key_press)
 
-display = tk.Entry(janela, width=35, borderwidth=5)
-display.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+# Estilo do display
+estilo = ttk.Style()
+estilo.configure('TEntry', borderwidth=0, highlightthickness=0)
+
+# Display com estilo personalizado
+display = ttk.Entry(janela, width=35, style='TEntry', font=('Arial', 16), justify='right')
+display.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky='ew')
 display.focus_set()  # Foco no display para capturar os eventos do teclado
 
 buttons = [
