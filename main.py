@@ -1,64 +1,79 @@
 import tkinter as tk
 from tkinter import ttk
 
-def on_click(char):
-    current_text = display.get()
-    display.delete(0, tk.END)
-    display.insert(0, current_text + char)
+class Calculadora:
+    def __init__(self, master):
+        self.master = master
+        master.title("Calculadora")
+        master.bind('<Key>', self.on_key_press)
 
-def calculate():
-    try:
-        result = eval(display.get())
-        display.delete(0, tk.END)
-        display.insert(0, str(result))
-    except Exception as e:
-        display.delete(0, tk.END)
-        display.insert(0, "Erro")
+        self.create_display()
+        self.create_buttons()
 
-def clear_display():
-    display.delete(0, tk.END)
+    def create_display(self):
+        style = ttk.Style()
+        style.configure('TEntry', borderwidth=0, highlightthickness=0)
+        self.display = ttk.Entry(self.master, width=35, style='TEntry', font=('Arial', 16), justify='right')
+        self.display.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky='ew')
+        self.display.focus_set()
 
-def on_key_press(event):
-    char = event.char
-    if char.isdigit() or char in ['+', '-', '*', '/']:
-        current_text = display.get()
-        if not current_text.endswith(char):
-            on_click(char)
-    elif event.keysym == 'Return':
-        calculate()
-    elif event.keysym in ['BackSpace', 'Delete']:
-        clear_display()
+    def create_buttons(self):
+        buttons = [
+            '7', '8', '9', '+',
+            '4', '5', '6', '-',
+            '1', '2', '3', '*',
+            'C', '0', '=', '/',
+            '.', '(', ')', '^'  # Adicionando novos botões
+        ]
 
-janela = tk.Tk()
-janela.title("Calculadora")
-janela.bind('<Key>', on_key_press)
-
-# Estilo do display
-estilo = ttk.Style()
-estilo.configure('TEntry', borderwidth=0, highlightthickness=0)
-
-# Display com estilo personalizado
-display = ttk.Entry(janela, width=35, style='TEntry', font=('Arial', 16), justify='right')
-display.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky='ew')
-display.focus_set()  # Foco no display para capturar os eventos do teclado
-
-buttons = [
-    '7', '8', '9', '+',
-    '4', '5', '6', '-',
-    '1', '2', '3', '*',
-    'C', '0', '=', '/'
-]
-
-row_val = 1
-col_val = 0
-
-for button in buttons:
-    b = tk.Button(janela, text=button, padx=40, pady=20, command=lambda b=button: on_click(b) if b not in ['=', 'C'] else calculate() if b == '=' else clear_display())
-    b.grid(row=row_val, column=col_val, sticky='nsew')
-    col_val += 1
-    if col_val > 3:
+        row_val = 1
         col_val = 0
-        row_val += 1
-        janela.grid_rowconfigure(row_val, weight=1)
 
-janela.mainloop()
+        for button in buttons:
+            cmd = lambda x=button: self.on_click(x)
+            b = tk.Button(self.master, text=button, padx=20, pady=20, command=cmd)
+            b.grid(row=row_val, column=col_val, sticky='nsew')
+            col_val += 1
+            if col_val > 3:
+                col_val = 0
+                row_val += 1
+            self.master.grid_rowconfigure(row_val, weight=1)
+            self.master.grid_columnconfigure(col_val, weight=1)
+
+    def on_click(self, char):
+        if char == '=':
+            self.calculate()
+        elif char == 'C':
+            self.clear_display()
+        else:
+            current_text = self.display.get()
+            self.display.delete(0, tk.END)
+            self.display.insert(0, current_text + char)
+
+    def calculate(self):
+        try:
+            result = eval(self.display.get().replace('^', '**'))
+            self.display.delete(0, tk.END)
+            self.display.insert(0, str(result))
+        except Exception as e:
+            self.display.delete(0, tk.END)
+            self.display.insert(0, "Erro")
+
+    def clear_display(self):
+        self.display.delete(0, tk.END)
+
+    def on_key_press(self, event):
+        char = event.char
+        if char.isdigit() or char in ['+', '-', '*', '/', '.', '(', ')']:
+            self.on_click(char)
+        elif event.keysym == 'Return':
+            self.calculate()
+        elif event.keysym in ['BackSpace', 'Delete']:
+            self.clear_display()
+        elif char == '^':
+            self.on_click('^')
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = Calculadora(root)
+    root.mainloop()
